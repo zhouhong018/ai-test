@@ -266,7 +266,11 @@ CONFIG.messages.forEach((m, i) => {
       <div class="bubble">
         <h2 class="bubble-title"></h2>
         <p class="bubble-text"></p>
-        <span class="say-state" aria-hidden="true"><i></i><i></i><i></i></span>
+        <button class="say-btn" type="button" aria-label="朗读这段祝福">
+          <span class="w" aria-hidden="true"><i></i><i></i><i></i></span>
+          <em class="say-idle">点我听这段</em>
+          <em class="say-live">朗读中 · 再点停止</em>
+        </button>
       </div>
     </div>`;
   sec._data = m;
