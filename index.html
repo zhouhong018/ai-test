@@ -71,7 +71,7 @@
 <section class="wish" data-scene>
   <div class="wish-bg bg-lavender"></div>
   <h2 class="reveal">许个愿吧</h2>
-  <p class="reveal dim">点亮蜡烛，再亲手把它们吹灭</p>
+  <p class="reveal dim">在心里想一个愿望，然后亲手把它吹灭</p>
   <div class="cake reveal" id="cake" role="button" tabindex="0" aria-label="吹灭蜡烛">
     <div class="candles" aria-hidden="true">
       <span class="candle"><i class="flame"></i></span>
@@ -82,6 +82,9 @@
     <div class="tier bottom"><span class="drip"></span></div>
     <div class="plate"></div>
   </div>
+  <p class="tap-hint" id="tap-hint" aria-hidden="true">
+    <span class="hand">👆</span>用手指点一下，把蜡烛吹灭
+  </p>
   <p class="wish-done" id="wish-done" hidden>愿望已经寄出，剩下的交给时间 ✦</p>
 </section>
 
@@ -103,6 +106,7 @@
   <button id="btn-music" class="tool" type="button" aria-pressed="false">
     <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>音乐
   </button>
+  <p class="tts-warn" id="tts-warn" hidden>本机语音不可用 · 点气泡可重试</p>
 </div>
 
 <noscript><p class="noscript">这个页面需要开启 JavaScript 才能播放动画和祝福。</p></noscript>

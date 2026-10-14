@@ -7,11 +7,11 @@ const CONFIG = {
   name: '大漂亮',
   date: '今天 · 是全世界最温柔的一天',
   messages: [
-    { tag: '01', title: '嘿，生日快乐', text: '先别急着往下滑，这句话我是认真说的：今天你最大，全世界都该让你三分。愿新的一岁眼里有光，心里有糖，口袋里装着数不清的好消息，走过的每一步都算数。', bg: 'bg-blush' },
-    { tag: '02', title: '愿你笑得尽兴', text: '看你笑的时候，连空气都跟着变甜。新的一岁，愿你想笑就笑出声，不必为谁收敛；愿有趣的人常在你身边，开心的事天天都在发生，连梦里都是轻快的。', bg: 'bg-cream' },
-    { tag: '03', title: '愿你被世界温柔待', text: '愿你想要的都慢慢靠近，愿你的热爱都有回响。走路有风，睡觉有梦，抬头就碰上好天气。那些你认真埋下的种子，都会在没留神的时候悄悄开花。', bg: 'bg-lavender' },
-    { tag: '04', title: '愿你有钱也有闲', text: '想买的东西不必犹豫，想去的地方随时出发。卡里有钱，日程有空，身边有人。愿你的日子既热闹又从容，忙的时候有奔头，闲的时候有诗意，四季都值得过。', bg: 'bg-blush' },
-    { tag: '05', title: '最后一个愿望留给你', text: '往下的蜡烛交给你自己吹，礼物也等你亲手拆。许愿的时候贪心一点没关系，把没说出口的期待都写上。愿你所求的都如愿，愿这条路越走越开阔。', bg: 'bg-cream' },
+    { title: '嘿，生日快乐', text: '先别急着往下滑，这句话我是认真说的：今天你最大，全世界都该让你三分。愿新的一岁眼里有光，心里有糖，口袋里装着数不清的好消息，走过的每一步都算数。', bg: 'bg-blush' },
+    { title: '愿你笑得尽兴', text: '看你笑的时候，连空气都跟着变甜。新的一岁，愿你想笑就笑出声，不必为谁收敛；愿有趣的人常在你身边，开心的事天天都在发生，连梦里都是轻快的。', bg: 'bg-cream' },
+    { title: '愿你被世界温柔待', text: '愿你想要的都慢慢靠近，愿你的热爱都有回响。走路有风，睡觉有梦，抬头就碰上好天气。那些你认真埋下的种子，都会在没留神的时候悄悄开花。', bg: 'bg-lavender' },
+    { title: '愿你有钱也有闲', text: '想买的东西不必犹豫，想去的地方随时出发。卡里有钱，日程有空，身边有人。愿你的日子既热闹又从容，忙的时候有奔头，闲的时候有诗意，四季都值得过。', bg: 'bg-blush' },
+    { title: '最后一个愿望留给你', text: '往下的蜡烛交给你自己吹，礼物也等你亲手拆。许愿的时候贪心一点没关系，把没说出口的期待都写上。愿你所求的都如愿，愿这条路越走越开阔。', bg: 'bg-cream' },
   ],
   gift: {
     title: '这里还有一份小礼物',
@@ -161,73 +161,116 @@ btnMusic?.addEventListener('click', () => {
   }
 });
 
-/* ---------- 逐字显示 ---------- */
-function type(el, text, speed = 26) {
-  return new Promise((resolve) => {
-    if (prefersReduced || !text) {
-      el.textContent = text ?? '';
-      resolve();
-      return;
-    }
-    el.textContent = '';
-    let i = 0;
-    const run = () => {
-      el.textContent = text.slice(0, (i += 1));
-      if (i >= text.length) {
-        resolve();
-        return;
-      }
-      setTimeout(run, speed);
-    };
-    run();
-  });
+/* ---------- 按句切行，交给 CSS 逐行淡入（不再用打字机） ---------- */
+function fillLines(el, text, start = 0) {
+  const parts = text.match(/[^。！？；]+[。！？；]?/g) || [text];
+  el.innerHTML = parts
+    .map((s, i) => `<span class="line" style="--i:${start + i}">${s}</span>`)
+    .join('');
+  return parts.length;
 }
 
-/* ---------- 语音朗读（到屏自动触发） ---------- */
-const say = { unlocked: false };
-const zhVoices = () => speechSynthesis.getVoices().filter((v) => v.lang.startsWith('zh'));
+/* ---------- 语音朗读（到屏自动触发；微信内核需手势兜底） ---------- */
+const say = { unlocked: false, text: '', host: null, waiting: false, warming: false, timer: 0 };
+
+function voices() {
+  try {
+    return speechSynthesis.getVoices().filter((v) => (v.lang || '').toLowerCase().startsWith('zh'));
+  } catch {
+    return [];
+  }
+}
 
 function pickVoice() {
-  const vs = zhVoices();
+  const vs = voices();
   if (!vs.length) return null;
-  return vs.find((v) => /xiaoxiao|tingting|meijia|huihui|yao/i.test(v.name)) || vs[0];
+  return vs.find((v) => /xiaoxiao|xiaoyi|tingting|meijia|huihui|yunxi|kangkang|zhiwei/i.test(v.name)) || vs[0];
+}
+
+const ttsWarn = document.getElementById('tts-warn');
+
+function checkTts() {
+  if (pickVoice()) {
+    if (ttsWarn) ttsWarn.hidden = true;
+    return;
+  }
+  // 语音表多为异步加载，2.6s 后仍拿不到中文 voice 就认为本机没有 TTS 引擎
+  clearTimeout(say.timer);
+  say.timer = setTimeout(() => {
+    if (ttsWarn && !pickVoice()) ttsWarn.hidden = false;
+  }, 2600);
+}
+
+if ('speechSynthesis' in window) {
+  voices(); // 提前触发内核加载语音表
+  speechSynthesis.onvoiceschanged = () => {
+    if (ttsWarn) ttsWarn.hidden = true;
+    if (say.waiting) doSpeak();
+  };
+}
+
+function doSpeak() {
+  if (!say.text || !('speechSynthesis' in window)) return;
+  const v = pickVoice();
+  if (!v) {
+    say.waiting = true; // 等 onvoiceschanged 再补读
+    checkTts();
+    return;
+  }
+  say.waiting = false;
+  const bubble = say.host;
+  const u = new SpeechSynthesisUtterance(say.text);
+  u.lang = 'zh-CN';
+  u.voice = v;
+  u.rate = 0.92;
+  u.pitch = 1.1;
+  u.onstart = () => bubble?.classList.add('speaking');
+  const done = () => bubble?.classList.remove('speaking');
+  u.onend = done;
+  u.onerror = done;
+  speechSynthesis.cancel();
+  speechSynthesis.resume(); // 绕开 Chrome 朗读久了卡在 paused 的已知问题
+  speechSynthesis.speak(u);
 }
 
 function speak(text, host) {
+  say.text = text;
+  say.host = host ?? null;
   if (!('speechSynthesis' in window) || !say.unlocked) return;
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'zh-CN';
-  const v = pickVoice();
-  if (v) u.voice = v;
-  u.rate = 0.92;
-  u.pitch = 1.1;
-  const stop = () => host?.classList.remove('speaking');
-  u.onstart = () => host?.classList.add('speaking');
-  u.onend = stop;
-  u.onerror = stop;
-  speechSynthesis.speak(u);
+  doSpeak();
 }
 
 /* ---------- 祝福卡片 ---------- */
 const deck = document.getElementById('deck');
 
-CONFIG.messages.forEach((m) => {
+/* 每屏轮换一组装饰，五屏不会长一样：气球 / 爱心 / 气球+爱心 */
+const DECOR = [
+  '<span class="balloon b1"></span><span class="balloon b3"></span>',
+  '<span class="heart h1">♡</span><span class="heart h3">♡</span>',
+  '<span class="balloon b2"></span><span class="balloon b4"></span><span class="heart h2">♡</span>',
+];
+const FLAGS = '<i></i>'.repeat(7);
+
+CONFIG.messages.forEach((m, i) => {
   const sec = document.createElement('section');
   sec.className = 'msg';
   sec.dataset.scene = '';
   sec.innerHTML = `
     <div class="msg-bg ${m.bg}"></div>
+    <div class="bunting" aria-hidden="true">${FLAGS}</div>
+    <div class="decor" aria-hidden="true">${DECOR[i % DECOR.length]}</div>
     <div class="msg-inner">
+      <span class="sparkle sp-a" aria-hidden="true"></span>
+      <span class="sparkle sp-b" aria-hidden="true"></span>
+      <span class="sparkle sp-c" aria-hidden="true"></span>
       <div class="bubble">
-        <span class="bubble-tag">${m.tag}</span>
         <h2 class="bubble-title"></h2>
         <p class="bubble-text"></p>
         <span class="say-state" aria-hidden="true"><i></i><i></i><i></i></span>
       </div>
     </div>`;
   sec._data = m;
-  sec._typed = false;
+  sec._shown = false;
   deck.appendChild(sec);
 });
 
@@ -255,21 +298,21 @@ function reveal(sec) {
     heartBurst({ count: 8 });
   }
 
-  if (sec.classList.contains('msg') && !sec._typed) {
-    sec._typed = true;
+  if (sec.classList.contains('msg') && !sec._shown) {
+    sec._shown = true;
     const m = sec._data;
     const bubble = sec.querySelector('.bubble');
-    const title = sec.querySelector('.bubble-title');
-    const text = sec.querySelector('.bubble-text');
-    type(title, m.title, 60)
-      .then(() => type(text, m.text, 26))
-      .then(() => {
-        bubble.classList.add('typed-done');
-        if (!sec._said) {
-          sec._said = true;
-          speak(`${m.title}。${m.text}`, bubble);
-        }
-      });
+    fillLines(sec.querySelector('.bubble-title'), m.title, 0);
+    fillLines(sec.querySelector('.bubble-text'), m.text, 1);
+    /* 最后一行淡入结束后再开口，时序交给 CSS；事件被内核吞掉时用定时兜底 */
+    const last = sec.querySelector('.bubble-text .line:last-child');
+    const sayNow = () => {
+      if (sec._said) return;
+      sec._said = true;
+      speak(`${m.title}。${m.text}`, bubble);
+    };
+    last.addEventListener('animationend', sayNow, { once: true });
+    setTimeout(sayNow, 3200);
   }
 }
 
@@ -377,10 +420,17 @@ async function enter() {
   btnMusic?.classList.add('is-on');
   if ('speechSynthesis' in window) {
     try {
-      const tiny = new SpeechSynthesisUtterance(' ');
-      tiny.volume = 0;
-      speechSynthesis.speak(tiny);
+      // 借这次点击发一条静音朗读，把引擎唤醒（微信 WKWebView 需要真实字符）
+      const warm = new SpeechSynthesisUtterance('哈');
+      warm.lang = 'zh-CN';
+      warm.volume = 0;
+      const v = pickVoice();
+      if (v) warm.voice = v;
+      say.warming = true;
+      warm.onend = warm.onerror = () => { say.warming = false; };
+      speechSynthesis.speak(warm);
       say.unlocked = true;
+      checkTts();
     } catch {
       /* 朗读不可用时静默降级 */
     }
@@ -402,7 +452,24 @@ document.getElementById('gate-btn')?.addEventListener('click', enter);
 /* 移动端偶尔需要额外手势才允许朗读 */
 document.addEventListener('touchend', () => {
   say.unlocked = true;
+  checkTts();
 }, { once: true });
+
+/* 点一下气泡重听这段祝福：给自动朗读被内核拦掉的场合留个手势入口 */
+deck.addEventListener('click', (e) => {
+  const sec = e.target.closest('.msg');
+  if (!sec) return;
+  say.unlocked = true;
+  const m = sec._data;
+  const busy = (speechSynthesis.speaking || speechSynthesis.pending) && !say.warming;
+  if (busy) {
+    speechSynthesis.cancel();
+    say.text = '';
+    document.querySelectorAll('.bubble.speaking').forEach((b) => b.classList.remove('speaking'));
+    return;
+  }
+  speak(`${m.title}。${m.text}`, sec.querySelector('.bubble'));
+});
 
 addEventListener('pagehide', () => {
   music.stop();

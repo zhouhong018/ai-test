@@ -176,6 +176,72 @@ button {
   100% { transform: translateY(-70vh) scale(1.1); opacity: 0; }
 }
 
+/* 生日拉旗：贴在每屏顶部轻轻晃 */
+.bunting {
+  position: absolute;
+  top: max(0.4rem, env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  z-index: -1;
+  display: flex;
+  justify-content: center;
+  gap: clamp(4px, 1.8vw, 14px);
+  pointer-events: none;
+}
+
+.bunting::before {
+  content: "";
+  position: absolute;
+  left: -3%;
+  right: -3%;
+  top: 1px;
+  height: 12px;
+  border-bottom: 2px solid rgba(217, 184, 120, 0.45);
+  border-radius: 0 0 50% 50%;
+}
+
+.bunting i {
+  width: clamp(14px, 4.4vw, 22px);
+  height: clamp(20px, 6vw, 30px);
+  background: linear-gradient(160deg, #fbdbe6, #f2a9c1);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform-origin: 50% 0;
+  animation: flagSway 3.4s ease-in-out infinite alternate;
+}
+
+.bunting i:nth-child(3n + 2) { background: linear-gradient(160deg, #efe3f7, #d9c2ef); animation-delay: 0.5s; }
+.bunting i:nth-child(3n) { background: linear-gradient(160deg, #fff6e3, var(--gold-soft)); animation-delay: 1s; }
+
+@keyframes flagSway {
+  from { transform: rotate(-4deg); }
+  to { transform: rotate(4deg); }
+}
+
+/* 气泡四周的细闪星星 */
+.sparkle {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  animation: sparkleTwinkle 4.6s ease-in-out infinite;
+}
+
+.sparkle::before { content: "\2726"; }
+
+.sp-a { top: -3rem; left: 0; font-size: 20px; color: rgba(217, 184, 120, 0.75); }
+.sp-b { top: 16%; right: -0.9rem; font-size: 14px; color: rgba(226, 138, 168, 0.7); animation-delay: 1.4s; }
+.sp-c { bottom: -2.4rem; left: -0.9rem; font-size: 16px; color: rgba(217, 184, 120, 0.6); animation-delay: 2.6s; }
+
+@keyframes sparkleTwinkle {
+  0%, 100% { opacity: 0; transform: scale(0.5) rotate(-12deg); }
+  45%, 55% { opacity: 0.9; transform: scale(1) rotate(8deg); }
+}
+
+/* 还没滑到的祝福屏不动画，省点手机性能 */
+.msg:not(.in) .bunting i,
+.msg:not(.in) .decor > *,
+.msg:not(.in) .sparkle { animation-play-state: paused; }
+
 /* ---------- 开场 ---------- */
 .cover-content { text-align: center; z-index: 1; }
 
@@ -305,7 +371,7 @@ button {
 
 .bubble {
   position: relative;
-  padding: clamp(1.8rem, 4.5vw, 2.8rem) clamp(1.4rem, 4vw, 2.4rem) clamp(2.4rem, 6vw, 3.2rem);
+  padding: clamp(1.4rem, 3.6vw, 2.2rem) clamp(1.4rem, 4vw, 2.4rem) clamp(2.4rem, 6vw, 3.2rem);
   border-radius: 26px;
   background: var(--card);
   border: 1px solid var(--line);
@@ -314,34 +380,15 @@ button {
   transition: border-color 0.5s ease, box-shadow 0.5s ease;
 }
 
-.bubble::before {
-  content: "\201C";
-  position: absolute;
-  top: 0.12em;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: clamp(3.2rem, 10vw, 4.4rem);
-  line-height: 1;
-  color: rgba(217, 184, 120, 0.32);
-  pointer-events: none;
-}
-
-.bubble-tag {
-  position: absolute;
-  top: clamp(1.4rem, 3.5vw, 2rem);
-  right: clamp(1.2rem, 3vw, 1.8rem);
-  font-family: ui-monospace, monospace;
-  font-size: 0.74rem;
-  letter-spacing: 0.24em;
-  color: rgba(95, 70, 80, 0.34);
-}
+/* 气泡可点按重听本段朗读 */
+.msg .bubble { cursor: pointer; }
 
 .bubble-title {
   position: relative;
   font-size: clamp(1.25rem, 4.6vw, 1.85rem);
   line-height: 1.35;
   min-height: 1.4em;
-  margin: 1.5rem 0 0.9rem;
+  margin: 0.3rem 0 0.9rem;
   color: #7a5563;
 }
 
@@ -352,20 +399,29 @@ button {
   min-height: 6.2em;
 }
 
-.bubble-title::after, .bubble-text::after {
-  content: "";
+/* 卡片先移入，正文再按句逐行淡入上移（替代原打字机效果） */
+.line {
   display: inline-block;
-  width: 1px;
-  height: 1em;
-  margin-left: 3px;
-  background: var(--gold);
-  vertical-align: -0.15em;
-  animation: caret 1s steps(1) infinite;
+  opacity: 0;
 }
 
-.typed-done .bubble-title::after, .typed-done .bubble-text::after { display: none; }
+.msg .bubble { opacity: 0; }
 
-@keyframes caret { 50% { opacity: 0; } }
+.msg.in .bubble { animation: cardIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+.msg.in .line {
+  animation: lineIn 0.85s cubic-bezier(0.16, 1, 0.3, 1) calc(var(--i) * 0.22s) both;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.975); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes lineIn {
+  from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
 
 .say-state {
   position: absolute;
@@ -584,6 +640,56 @@ button {
 .wish { text-align: center; }
 .wish h2 { font-size: clamp(1.6rem, 6vw, 2.5rem); color: #7a5563; }
 
+.tap-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: clamp(0.9rem, 3.5vw, 1.5rem);
+  padding: 0.42rem 0.95rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--line);
+  color: var(--dim);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  box-shadow: 0 8px 18px rgba(214, 154, 176, 0.14);
+  max-height: 64px;
+  overflow: hidden;
+  transition: opacity 0.5s ease, transform 0.5s ease, max-height 0.45s ease 0.15s, margin 0.45s ease 0.15s, padding 0.45s ease 0.15s;
+}
+
+.tap-hint .hand {
+  display: inline-block;
+  font-size: 1rem;
+  transform-origin: 50% 100%;
+  animation: tapPoint 1.9s ease-in-out infinite;
+}
+
+/* 吹灭后提示淡出并收起，别占着高度把愿望句挤出屏幕 */
+.cake.blown ~ .tap-hint {
+  opacity: 0;
+  transform: translateY(8px);
+  max-height: 0;
+  margin-top: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-color: transparent;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+/* 矮屏（含全面屏小机型）保证吹蜡烛一屏放得下；选择器压过 620px 断点里的 .cake */
+@media (max-height: 700px) {
+  .wish .cake { width: min(200px, 54vw); margin-top: clamp(1rem, 4vw, 1.6rem); }
+  .tap-hint { margin-top: 0.7rem; padding: 0.3rem 0.8rem; font-size: 0.72rem; }
+}
+
+@keyframes tapPoint {
+  0%, 100% { transform: translateY(0) scale(1); }
+  40%, 55% { transform: translateY(7px) scale(0.9); }
+  75% { transform: translateY(-2px) scale(1); }
+}
+
 .cake {
   position: relative;
   width: min(270px, 72vw);
@@ -755,6 +861,19 @@ button {
   top: clamp(0.8rem, 3vw, 1.4rem);
   right: clamp(0.8rem, 3vw, 1.4rem);
   z-index: 32;
+  text-align: right;
+}
+
+.tts-warn {
+  margin-top: 0.45rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(8px);
+  color: var(--dim);
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  box-shadow: 0 6px 16px rgba(214, 154, 176, 0.14);
 }
 
 .tool {
@@ -843,7 +962,7 @@ body:not(.entered) { overflow: hidden; }
 @media (max-width: 620px) {
   .bubble { border-radius: 22px; }
   .bubble-text { min-height: 4.8em; line-height: 1.95; }
-  .bubble-title { margin: 1.2rem 0 0.7rem; }
+  .bubble-title { margin: 0.2rem 0 0.7rem; }
   .gift-stage { height: min(300px, 44vh); }
   .cake { width: min(240px, 66vw); }
   .wish-done, .gift-note { margin-top: 1.2rem; }
