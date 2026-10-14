@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no,email=no,address=no">
+<meta name="theme-color" content="#fdf6f3">
+<title>生日快乐 · 给最温柔的你</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<!-- 入口遮罩：点击进入，顺便解锁音频权限 -->
+<div id="gate" class="gate">
+  <div class="gate-inner">
+    <span class="gate-flower" aria-hidden="true">🌸</span>
+    <p class="gate-kicker">A LITTLE GIFT</p>
+    <h1 class="gate-title">有一份温柔<br>等你拆开</h1>
+    <button id="gate-btn" class="gate-btn" type="button">点击进入</button>
+    <p class="gate-hint">建议开启声音 · 上下滑动阅读</p>
+  </div>
+</div>
+
+<!-- 开场 -->
+<section class="cover" data-scene>
+  <div class="cover-bg bg-blush"></div>
+  <div class="decor" aria-hidden="true">
+    <span class="balloon b1"></span><span class="balloon b2"></span>
+    <span class="balloon b3"></span><span class="balloon b4"></span>
+    <span class="heart h1">♡</span><span class="heart h2">♡</span><span class="heart h3">♡</span>
+  </div>
+  <div class="cover-content">
+    <p class="eyebrow reveal">HAPPY BIRTHDAY TO</p>
+    <h1 class="hero-name reveal" id="hero-name">你</h1>
+    <p class="hero-line reveal" id="hero-date"></p>
+    <div class="cake-mini reveal" aria-hidden="true">
+      <span class="cherry"></span>
+      <span class="frosting"></span>
+    </div>
+  </div>
+  <div class="scroll-hint reveal" aria-hidden="true">
+    <span class="finger"><i class="tip">👇</i><i class="ripple"></i></span>
+    <em>往下滑</em>
+  </div>
+</section>
+
+<!-- 祝福卡由 js/main.js 按 CONFIG.messages 渲染到这里，屏数取决于数组长度 -->
+<main id="deck"></main>
+
+<!-- 拆礼物 -->
+<section class="gift" data-scene>
+  <div class="gift-bg bg-cream"></div>
+  <h2 class="reveal" id="gift-title"></h2>
+  <p class="reveal dim" id="gift-hint"></p>
+  <div class="gift-stage">
+    <div class="gift-pop" id="gift-pop" aria-hidden="true"></div>
+    <div class="gift-box" id="gift" role="button" tabindex="0" aria-label="拆开礼物">
+      <span class="gift-spark sp1" aria-hidden="true"></span>
+      <span class="gift-spark sp2" aria-hidden="true"></span>
+      <span class="gift-spark sp3" aria-hidden="true"></span>
+      <span class="gift-lid" aria-hidden="true"><i class="bow"></i></span>
+      <span class="gift-body" aria-hidden="true"><i class="ribbon-v"></i></span>
+      <span class="gift-shadow" aria-hidden="true"></span>
+    </div>
+  </div>
+  <p class="gift-note" id="gift-note" hidden></p>
+</section>
+
+<!-- 吹蜡烛 -->
+<section class="wish" data-scene>
+  <div class="wish-bg bg-lavender"></div>
+  <h2 class="reveal">许个愿吧</h2>
+  <p class="reveal dim">点亮蜡烛，再亲手把它们吹灭</p>
+  <div class="cake reveal" id="cake" role="button" tabindex="0" aria-label="吹灭蜡烛">
+    <div class="candles" aria-hidden="true">
+      <span class="candle"><i class="flame"></i></span>
+      <span class="candle"><i class="flame"></i></span>
+      <span class="candle"><i class="flame"></i></span>
+    </div>
+    <div class="tier top"><span class="drip"></span></div>
+    <div class="tier bottom"><span class="drip"></span></div>
+    <div class="plate"></div>
+  </div>
+  <p class="wish-done" id="wish-done" hidden>愿望已经寄出，剩下的交给时间 ✦</p>
+</section>
+
+<!-- 结尾 -->
+<section class="finale" data-scene>
+  <div class="finale-bg bg-blush"></div>
+  <div class="decor" aria-hidden="true">
+    <span class="heart h1">♡</span><span class="heart h2">♡</span>
+  </div>
+  <p class="reveal eyebrow">THE END · 但不是最后一次</p>
+  <h2 class="reveal" id="finale-title">生日快乐</h2>
+  <p class="reveal signature">新的一岁，继续被爱着。</p>
+  <button class="ghost-btn reveal" id="replay" type="button">再看一遍</button>
+</section>
+
+<nav class="dots" id="dots" aria-label="页面进度"></nav>
+
+<div class="toolbar">
+  <button id="btn-music" class="tool" type="button" aria-pressed="false">
+    <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>音乐
+  </button>
+</div>
+
+<noscript><p class="noscript">这个页面需要开启 JavaScript 才能播放动画和祝福。</p></noscript>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
